@@ -1,5 +1,6 @@
 package main;
 
+import db.User;
 import server.Server;
 
 import java.io.*;
@@ -17,6 +18,7 @@ public class Connection extends Thread {
     private final Server eventListener;
     private final BufferedReader in;
     private PrintWriter out;//**proba
+    User user;
 
 //    public Connection(ConnectionListener eventListener, Socket socket) throws IOException {
     public Connection(Server eventListener, Socket socket) throws IOException {
@@ -33,11 +35,16 @@ public class Connection extends Thread {
             login = in.readLine();
             eventListener.onConnectionReady(Connection.this);
             //???? вот здесь может быть ошибка моя
-            while (true) {
-                String mes = in.readLine();
-                if(mes.equals("exit")) break;
+            String mes = "";
+            while (!mes.equals("exit")) {
+                mes = in.readLine();
                 eventListener.onReceiveString(Connection.this, mes);
             }
+//            while (true) {
+//                String mes = in.readLine();
+//                if(mes.equals("exit")) break;
+//                eventListener.onReceiveString(Connection.this, mes);
+//            }
             eventListener.onDisconnect(Connection.this);
 
         } catch (IOException e) {
@@ -45,8 +52,11 @@ public class Connection extends Thread {
 
         }
         finally {
+            close();
+
 //            Connection.currentThread().interrupt();
-            Connection.this.close();
+//            Connection.this.close();
+
 //            try {
 //                in.close();
 //                out.close();
@@ -59,7 +69,8 @@ public class Connection extends Thread {
         }
     }
 
-    public synchronized void close() {
+
+    public void close() {
         try {
             in.close();
             out.close();
@@ -68,6 +79,8 @@ public class Connection extends Thread {
             System.err.println("Потоки не были закрыты!");
         }
     }
+
+
 
 
     public synchronized void sendMessage(String message) {

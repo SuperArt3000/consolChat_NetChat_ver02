@@ -48,10 +48,9 @@ public class Client {
 //         введено из консоли
 
         String str = "";
-            while (true) {
+            while (!str.equals("exit")) {
                 str = scan.nextLine();
                 out.println(str);
-                if(str.equals("exit")) break;
             }
 //        while (!str.equals(EXIT_CODE)) {
 //            str = scan.nextLine();
@@ -62,8 +61,9 @@ public class Client {
     } catch (Exception e) {
         e.printStackTrace();
     } finally {
-//        Client.this.close();
-        close();
+        Client.this.close();
+//        close();
+
     }
 }
 
@@ -71,7 +71,7 @@ public class Client {
     /**
      * Закрывает входной и выходной потоки и сокет
      */
-    public synchronized void close() {
+    public void close() {
         try {
             in.close();
             out.close();
@@ -89,21 +89,15 @@ public class Client {
       */
 
     public class Resender extends Thread {
-
         private boolean stoped;
 
-        /**
-         * Прекращает пересылку сообщений
-         */
-        public void setStop() {
+        public synchronized void setStop() {
             stoped = true;
         }
 
         /**
          * Считывает все сообщения от сервера и печатает их в консоль.
          * Останавливается вызовом метода setStop()
-         *
-         * @see java.lang.Thread#run()
          */
 
         @Override

@@ -27,7 +27,7 @@ public class Server implements ConnectionListener {
 //    private final ArrayList<Connection> connections = new ArrayList<>();
     private final List<Connection> connections = Collections.synchronizedList(new ArrayList<>());//*проба
 
-    private ServerSocket server;
+    private final ServerSocket server;
 
     public Connection connection;
 
@@ -36,7 +36,7 @@ public class Server implements ConnectionListener {
     //*****
 //    public String name;
 //    ArrayList<User> users = DatabaseService.selectUsers();
-    ArrayList<User> users;
+    private final ArrayList<User> users = new ArrayList<>();
 
     //*****
 
@@ -60,18 +60,33 @@ public class Server implements ConnectionListener {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
+            System.out.println("сервер виноват");
+            serverClose();
+//            try {
+//                server.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
 //            connection.close();
-
+//            closeAll();
         }
     }
+
+private void serverClose(){
+    try {
+        server.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
 
     @Override
     public synchronized void onConnectionReady(Connection connection) {
         connections.add(connection);
         //*****
-User user = new User(0, connection.getLogin());
+User user = new User(connection.getLogin());
 DatabaseService.createUser(user);
-users = new ArrayList<>();
 users.add(user);
         //*****
         System.out.println("Подключение пользователя: " + connection.getLogin());
@@ -92,6 +107,7 @@ users.add(user);
 
     @Override
     public synchronized void onDisconnect(Connection connection) {
+
         connections.remove(connection);
         System.out.println("Отключение пользователя: " + connection.getLogin());
         sendMessage(ANSI_YELLOW + connection.getLogin() + " выходит из чата" + ANSI_RESET);
@@ -104,6 +120,9 @@ users.add(user);
             }
         }
         //****
+
+//        this.connection.close();//**проба
+
     }
 
     @Override
