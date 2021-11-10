@@ -1,7 +1,10 @@
 package db;
 
+import server.Server;
+
 import java.sql.*;
 import java.util.ArrayList;
+//import main.Connection;
 
 public class DatabaseService {
 
@@ -20,39 +23,38 @@ public class DatabaseService {
             connection = DriverManager.getConnection(URL, LOGIN, PASSWORD);
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            return connection;
         }
+        return connection;
     }
 
 
-    public static ArrayList<User> selectUsers() {
-        ArrayList<User> users = new ArrayList<>();
-        try {
-            Statement statement = getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM chatdb.chatusers;");
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String name = resultSet.getNString("name");
-//                String message = resultSet.getString("message");
-//                Time dateandtime = resultSet.getTime("dateandtime");
-//                users.add(new User(id, name, message, dateandtime));
-                users.add(new User(id, name));
-            }
-//            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            return users;
-        }
-    }
+//    public static ArrayList<User> selectUsers() {
+//        ArrayList<User> users = new ArrayList<>();
+//        try {
+//            Statement statement = getConnection().createStatement();
+//            ResultSet resultSet = statement.executeQuery("SELECT * FROM chatdb.chatusers;");
+//            while (resultSet.next()) {
+//                String name = resultSet.getNString("name");
+//                String dateandtime = resultSet.getString("dateandtime");
+//                users.add(new User(name, dateandtime));
+//            }
+////            connection.close();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return users;
+//    }
+
 
     public static boolean createUser(User user){
         boolean result = false;
         try {
-            String commandText = "INSERT INTO chatusers (name) VALUES(?)";
+            String commandText = "INSERT INTO chatusers (name, dateandtime) VALUES(?,?)";
+//            String commandText = "INSERT INTO chatusers (name, dateandtime, message) VALUES(?,?,?)";
             PreparedStatement preparedStatement = getConnection().prepareStatement(commandText);
             preparedStatement.setString(1, user.getName());
+            preparedStatement.setString(2, user.getDateandtime());
+//            preparedStatement.setString(3, user.getMessage());//**proba
             result = preparedStatement.executeUpdate() > 0;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -71,7 +73,36 @@ public class DatabaseService {
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
+        return result;
+    }
 
+    public static boolean createMessage(main.Connection connection, String message){
+        boolean result = false;
+        try {
+            String commandText = "INSERT INTO messagehistory (name, message, dateandtime) VALUES(?,?,?)";
+//            String commandText = "INSERT INTO messagehistory (name, message) VALUES(?,?)";
+            PreparedStatement preparedStatement = getConnection().prepareStatement(commandText);
+            preparedStatement.setString(1, connection.getLogin());
+            preparedStatement.setString(2, message);
+            preparedStatement.setString(3, connection.currentDateAndTime());
+            result = preparedStatement.executeUpdate() > 0;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
+        return result;
+    }
+
+    public static boolean deleteMessage(User user){
+        boolean result = false;
+        try {
+            String commandText = "DELETE FROM messagehistory WHERE name = ?";
+            PreparedStatement preparedStatement = getConnection().prepareStatement(commandText);
+            preparedStatement.setString(1, user.getName());
+            result = preparedStatement.executeUpdate() > 0;
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return result;
     }
 

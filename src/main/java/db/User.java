@@ -1,24 +1,19 @@
 package db;
 
-import java.sql.Time;
-
 public class User {
     private int id;
     private String name;
+    private String dateandtime;
     private String message;
-    private Time dateandtime;
 
-     public User(int id, String name) {
-        this.id = id;
+
+    public User(String name, String dateandtime) {
         this.name = name;
+        this.dateandtime = dateandtime;
+//        this.message = message;
     }
 
-    public User(String name) {
-        this.name = name;
-    }
-
-    public User(int id, String name, String message, Time dateandtime) {
-        this.id = id;
+    public User(String name, String message, String dateandtime) {
         this.name = name;
         this.message = message;
         this.dateandtime = dateandtime;
@@ -40,7 +35,13 @@ public class User {
         this.name = name;
     }
 
+    public String getDateandtime() {
+        return dateandtime;
+    }
 
+    public void setDateandtime(String dateandtime) {
+        this.dateandtime = dateandtime;
+    }
 
     public String getMessage() {
         return message;
@@ -49,14 +50,4 @@ public class User {
     public void setMessage(String message) {
         this.message = message;
     }
-
-    public Time getDateandtime() {
-        return dateandtime;
-    }
-
-    public void setDateandtime(Time dateandtime) {
-        this.dateandtime = dateandtime;
-    }
-
-
 }
