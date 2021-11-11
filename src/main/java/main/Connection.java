@@ -1,26 +1,19 @@
 package main;
 
-import db.User;
-import message_history.MessageHistory;
 import server.Server;
-
 import static main.Const.EXIT_CODE;
-
 import java.io.*;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
 public class Connection extends Thread {
 
-    private String login;
+    private String name;
     private final Socket socket;
     private final Server eventListener;
     private final BufferedReader in;
     private final PrintWriter out;
-
-    private String message;//**proba
 
     //    public Connection(ConnectionListener eventListener, Socket socket) throws IOException {
     public Connection(Server eventListener, Socket socket) throws IOException {
@@ -36,13 +29,16 @@ public class Connection extends Thread {
     @Override
     public void run() {
         try {
-            login = in.readLine();
+            name = in.readLine();
             eventListener.onConnectionReady(Connection.this);
-            String mes = "";
-            while (!mes.equals(EXIT_CODE)) {
-                mes = in.readLine();
-                eventListener.onReceiveString(Connection.this, mes);
-                message = mes;//**proba
+            while (true) {
+                String message = in.readLine();
+                eventListener.onReceiveString(Connection.this, message);
+                System.out.println("logging: " + "пользователь " + Connection.this.getUserName() +
+                        " отправил сообщение - " +  "\"" + message + "\"" + " * " + currentDateAndTime());
+                if(message.equals(EXIT_CODE)){
+                    break;
+                }
             }
             eventListener.onDisconnect(Connection.this);
         } catch (IOException e) {
@@ -66,36 +62,13 @@ public class Connection extends Thread {
         out.println(message);
     }
 
-//    public synchronized void disconnect() {//**
-//        currentThread().interrupt();
-//        try {
-//            socket.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-
-//    @Override
-//    public String toString() {
-//        return "Соединение: " + socket.getInetAddress() + ": " + socket.getPort();
-//    }
-
-    public String getLogin() {
-        return login;
-    }
-    public String getMessage() {
-        return message;
+    public String getUserName() {
+        return name;
     }
 
     public String currentDateAndTime() {
         Date date = new Date(); // текущая дата
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-        String currentDateAndTime = sdf.format(date);
-        return currentDateAndTime;
+        return sdf.format(date);
     }
-
-
-
-
 }

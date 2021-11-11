@@ -5,51 +5,46 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Scanner;
-
-import main.Const;
-
-import static main.Const.EXIT_CODE;
+import static main.Const.*;
 
 public class Client {
 
     private BufferedReader in;
     private PrintWriter out;
     private Socket socket;
-
-    private String login;
-//    private static String str;
+    private String name;
 
     public Client() {
         Scanner scan = new Scanner(System.in);
         String ip = "127.0.0.1";
         try {
-            socket = new Socket(ip, Const.PORT);
+            socket = new Socket(ip, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
             System.out.print("Введите свой ник:");
-            login = scan.nextLine();
-            out.println(login);
+            name = scan.nextLine();
+            out.println(name);
 
-            // Запускаем вывод всех входящих сообщений в консоль
-            Resender resend = new Resender();
-            resend.start();
+            // Запускает вывод всех входящих сообщений в консоль
+            MessageResender messageResender = new MessageResender();
+            messageResender.start();
 
-            String str = "";
-            while (!str.equals(EXIT_CODE)) {
-                str = scan.nextLine();
-                out.println(str);
+            while (true) {
+                String message = scan.nextLine();
+                out.println(message);
+                if(message.equals(EXIT_CODE)){
+                    break;
+                }
             }
-            resend.setStop();
-//            this.close();//**proba - попробовать
+
+            messageResender.setStop();
+            scan.close();
+            close();
+
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-//            Client.this.close();
-        close();
         }
     }
 
@@ -60,23 +55,21 @@ public class Client {
             in.close();
             out.close();
             socket.close();
+
         } catch (Exception e) {
             System.err.println("Потоки не были закрыты!");
         }
     }
 
-//    public static String getMessage(){
-//        return str;
-//    }
 
     //Считывает все сообщения от сервера и печатает их в консоль.
-    public class Resender extends Thread {
+    public class MessageResender extends Thread {
 
         private boolean stoped;
 
         public synchronized void setStop() {
             stoped = true;
-            System.out.println(login + " Вы вышли из чата");//**
+            System.out.println(name + " Вы вышли из чата");
         }
 
         @Override

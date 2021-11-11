@@ -1,36 +1,24 @@
 package server;
 
-import client.Client;
 import db.DatabaseService;
 import db.User;
 import main.Connection;
 import main.ConnectionListener;
 import main.Const;
 import message_history.MessageHistory;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static main.Const.*;
 
 public class Server implements ConnectionListener {
 
-    //    private final ArrayList<Connection> connections = new ArrayList<>();
-    private final List<Connection> connections = Collections.synchronizedList(new ArrayList<>());//*проба
-
+    private final List<Connection> connections = Collections.synchronizedList(new ArrayList<>());
     private final ServerSocket server;
-
     private final ArrayList<User> users = new ArrayList<>();
+    private User user;
 
-    User user;
-
-
-    /**
-     * Конструктор создаёт сервер. Затем для каждого подключения создаётся
-     * объект Connection и добавляет его в список подключений.
-     */
     public Server() {
         System.out.println("Сервер запущен");
         try {
@@ -57,22 +45,18 @@ public class Server implements ConnectionListener {
         }
     }
 
-
     @Override
     public synchronized void onConnectionReady(Connection connection) {
         connections.add(connection);
-        //*****
-//        user = new User(connection.getLogin(), currentDateAndTime(), connection.getMessage());
-        user = new User(connection.getLogin(), currentDateAndTime());
+        userStatus(connection);
+        user = new User(connection.getUserName(), currentDateAndTime());
         DatabaseService.createUser(user);
         users.add(user);
 
-//        new User(connection.getLogin(), connection.getMessage(), currentDateAndTime());
-//        DatabaseService.createMessage(user);
-
-        //*****
-        System.out.println(ANSI_YELLOW + "(" + currentDateAndTime() + ") " + "Подключение пользователя: " + connection.getLogin() + ANSI_RESET);
-        sendMessage(ANSI_YELLOW + connection.getLogin() + " - заходит в чат" + ANSI_RESET);
+        System.out.println(ANSI_YELLOW + "(" + currentDateAndTime() + ") " + "Подключение пользователя: " +
+                connection.getUserName() + ANSI_RESET);
+        sendMessage(ANSI_YELLOW + "(" + currentDateAndTime() + ") " + connection.getUserName() +
+                " - заходит в чат" + ANSI_RESET);
         MessageHistory.printMessHistory(connection);
     }
 
@@ -84,21 +68,19 @@ public class Server implements ConnectionListener {
 
     @Override
     public synchronized void onDisconnect(Connection connection) {
-
         connections.remove(connection);
-        System.out.println(ANSI_YELLOW + "(" + currentDateAndTime() + ") " + "Отключение пользователя: " + connection.getLogin() + ANSI_RESET);
-        sendMessage(ANSI_YELLOW + connection.getLogin() + " - выходит из чата" + ANSI_RESET);
+        System.out.println(ANSI_RED + "(" + currentDateAndTime() + ") " + "Отключение пользователя: " +
+                connection.getUserName() + ANSI_RESET);
+        sendMessage(ANSI_RED + "(" + currentDateAndTime() + ") " + connection.getUserName() +
+                " - выходит из чата" + ANSI_RESET);
 
-        //*****
         for (User user : users) {
-            if (user.getName().equals(connection.getLogin())) {
+            if (user.getName().equals(connection.getUserName())) {
                 DatabaseService.deleteMessage(user);//**proba
                 DatabaseService.deleteUser(user);
-                System.out.println("пользователь: " + user.getName() + " удален из базы данных");
+                System.out.println(ANSI_RED + "пользователь: " + user.getName() + " удален из базы данных" + ANSI_RESET);
             }
         }
-        //****
-
     }
 
     @Override
@@ -110,47 +92,37 @@ public class Server implements ConnectionListener {
     private synchronized void sendMessage(String message) {
         Iterator<Connection> connectionIterator = connections.iterator();
         while (connectionIterator.hasNext()) {
-            connectionIterator.next().sendMessage("(" + currentDateAndTime() + ") " + message);
+            connectionIterator.next().sendMessage(message);
         }
     }
 
     private synchronized void sendMessage(Connection connection, String message) {
-        String finalMessage = (ANSI_YELLOW + "(" + currentDateAndTime() + ") " + ANSI_RESET + ANSI_RED + connection.getLogin() + ANSI_RESET + ": " + message);
+        String finalMessage = (ANSI_YELLOW + "(" + currentDateAndTime() + ") " + ANSI_RESET + ANSI_RED + connection.getUserName() + ANSI_RESET + ": " + message);
         MessageHistory.addHistoryEl(finalMessage);
         Iterator<Connection> connectionIterator = connections.iterator();
         while (connectionIterator.hasNext()) {
             Connection nextConnection = connectionIterator.next();
             if (!connection.equals(nextConnection))
-//                nextConnection.sendMessage(ANSI_YELLOW + "(" + currentDateAndTime() + ") " + ANSI_RESET + ANSI_RED + connection.getLogin() + ANSI_RESET + ": " + message);
                 nextConnection.sendMessage(finalMessage);
         }
-//        DatabaseService.createMessage(connection, finalMessage);
     }
 
-
-    //*******
     public String currentDateAndTime() {
-        Date date = new Date(); // текущая дата
+        Date date = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         return sdf.format(date);
     }
 
-    public String getMessage(String message) {
-        return message;
+    public void userStatus(Connection connection) {
+        if (connections.size() > 1) {
+            connection.sendMessage("Сейчас пользователи он лайн: ");
+            Iterator<Connection> connectionIterator = connections.iterator();
+            while (connectionIterator.hasNext()) {
+                Connection nextConnection = connectionIterator.next();
+                if (!connection.equals(nextConnection)) {
+                    connection.sendMessage(nextConnection.getUserName());
+                }
+            }
+        }
     }
-
-
-//    public java.sql.Date dateAndTime() {
-////        Calendar calendar = Calendar.getInstance();
-////        java.util.Date currentDate = calendar.getTime();
-////        java.sql.Date date = new java.sql.Date(currentDate.getTime());
-//
-////        return new java.sql.Date(Calendar.getInstance().getTime().getTime());
-//        java.sql.Date myAnotherDate = new java.sql.Date( (new java.util.Date()).getTime());
-//        return myAnotherDate;
-//    }
-
-
-    //*******
-
 }

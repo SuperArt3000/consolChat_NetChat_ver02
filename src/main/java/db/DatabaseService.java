@@ -1,10 +1,6 @@
 package db;
 
-import server.Server;
-
 import java.sql.*;
-import java.util.ArrayList;
-//import main.Connection;
 
 public class DatabaseService {
 
@@ -45,21 +41,17 @@ public class DatabaseService {
 //        return users;
 //    }
 
-
     public static boolean createUser(User user){
         boolean result = false;
         try {
             String commandText = "INSERT INTO chatusers (name, dateandtime) VALUES(?,?)";
-//            String commandText = "INSERT INTO chatusers (name, dateandtime, message) VALUES(?,?,?)";
             PreparedStatement preparedStatement = getConnection().prepareStatement(commandText);
             preparedStatement.setString(1, user.getName());
-            preparedStatement.setString(2, user.getDateandtime());
-//            preparedStatement.setString(3, user.getMessage());//**proba
+            preparedStatement.setString(2, user.getDateandTime());
             result = preparedStatement.executeUpdate() > 0;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
-
         return result;
     }
 
@@ -80,9 +72,8 @@ public class DatabaseService {
         boolean result = false;
         try {
             String commandText = "INSERT INTO messagehistory (name, message, dateandtime) VALUES(?,?,?)";
-//            String commandText = "INSERT INTO messagehistory (name, message) VALUES(?,?)";
             PreparedStatement preparedStatement = getConnection().prepareStatement(commandText);
-            preparedStatement.setString(1, connection.getLogin());
+            preparedStatement.setString(1, connection.getUserName());
             preparedStatement.setString(2, message);
             preparedStatement.setString(3, connection.currentDateAndTime());
             result = preparedStatement.executeUpdate() > 0;
@@ -105,6 +96,4 @@ public class DatabaseService {
         }
         return result;
     }
-
-
 }

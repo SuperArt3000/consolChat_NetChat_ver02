@@ -1,23 +1,21 @@
 package main;
 
 import java.util.Scanner;
-
 import server.Server;
 import client.Client;
 
 /**
- * Стартовая точка программы. Содержит единственный метод main.
+ * Стартовая точка программы.
+ * Просит пользователя выбрать режим работы программы (сервер или клиент)
+ * и передаёт управление соответствующему классу
  */
 public class Main {
-    /**
-     * Спрашивает пользователя о режиме работы (сервер или клиент)
-     * и передаёт управление соответствующему классу
-     */
+
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
-        System.out.println("Запустить программу в режиме сервера или клиента? (S(erver) / C(lient))");
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Запустить программу в режиме сервера или клиента? (S(Server) / C(Client))");
         while (true) {
-            char answer = Character.toLowerCase(in.nextLine().charAt(0));
+            char answer = Character.toLowerCase(scanner.nextLine().charAt(0));
             if (answer == 's') {
                 new Server();
                 break;
@@ -25,7 +23,7 @@ public class Main {
                 new Client();
                 break;
             } else {
-                System.out.println("Некорректный ввод. Повторите.");
+                System.out.println("Некорректный ввод. Повторите ещё раз.");
             }
         }
     }
